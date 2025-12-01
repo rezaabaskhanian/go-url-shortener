@@ -8,6 +8,6 @@ import (
 
 type UrlRepository interface {
 	Create(original string, shortCode string, expireAt time.Time) (int64, error)
-	GetByShortCode(shortCode string) (string, error)
+	GetByShortCode(shortCode string) (entity.URL, error)
 	ShowAll() ([]entity.URL, error)
 }

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 
+	"github.com/rezaabaskhanian/go-url-shortener/internal/delivery/httpserver"
+	urlhandler "github.com/rezaabaskhanian/go-url-shortener/internal/delivery/httpserver/handler"
 	"github.com/rezaabaskhanian/go-url-shortener/internal/repository/postgres"
+	"github.com/rezaabaskhanian/go-url-shortener/internal/usecase"
 )
 
 func main() {
@@ -17,8 +21,20 @@ func main() {
 
 	mydbPostGress := postgres.New()
 
-	myurlRepo := postgres.NewMyPostgres(mydbPostGress)
+	if err := mydbPostGress.Ping(context.Background()); err != nil {
+		log.Fatalf("Database not reachable: %v", err)
+	} else {
+		log.Println("Connected OK!")
+	}
 
-	log.Println("Connected to Postgres successfully!")
+	myUrlRepo := postgres.NewMyPostgres(mydbPostGress)
+
+	svc := usecase.New(myUrlRepo)
+
+	handler := urlhandler.New(svc)
+
+	server := httpserver.New(handler)
+
+	server.Serve()
 
 }

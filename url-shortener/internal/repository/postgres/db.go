@@ -14,7 +14,6 @@ func New() *pgxpool.Pool {
 	if err != nil {
 		log.Fatal("Unable to connect to database:", err)
 	}
-	defer pool.Close()
 
 	return pool
 }

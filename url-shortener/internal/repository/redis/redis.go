@@ -18,7 +18,6 @@ func NeWMyRedisClient(db *redis.Client) UrlCache {
 	return UrlMyRedisRepo{DB: db}
 }
 
-// Get implements UrlCache.
 func (r UrlMyRedisRepo) Get(shortCode string) (entity.URL, error) {
 	var url entity.URL
 
@@ -39,7 +38,6 @@ func (r UrlMyRedisRepo) Get(shortCode string) (entity.URL, error) {
 	return url, nil
 }
 
-// Set implements UrlCache.
 func (r UrlMyRedisRepo) Set(url entity.URL) error {
 
 	key := url.ShortCode
@@ -49,13 +47,25 @@ func (r UrlMyRedisRepo) Set(url entity.URL) error {
 		return err
 	}
 
+	// محاسبه مدت زمان انقضا
 	expiration := time.Until(url.ExpireAt)
+	if expiration <= 0 {
+		// اگر expireAt گذشته باشد، مستقیم ذخیره نکن
+		return fmt.Errorf("expiration time is already passed")
+	}
 
-	err = r.DB.Set(context.Background(), key, data, expiration)
+	result := r.DB.Set(context.Background(), key, data, expiration)
+
+	return result.Err()
+
+}
+
+func (r UrlMyRedisRepo) DELETE(shortCode string) error {
+
+	err := r.DB.Del(context.Background(), shortCode).Err()
 	if err != nil {
 		return err
 	}
-
 	return nil
 
 }

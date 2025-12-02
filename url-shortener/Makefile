@@ -13,7 +13,7 @@ all: run
 # اجرا کردن برنامه
 .PHONY: run
 run:
-	$(GO) run $(MAIN)
+	-$(GO) run $(MAIN)
 
 # Build باینری
 .PHONY: build

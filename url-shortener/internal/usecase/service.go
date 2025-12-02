@@ -12,11 +12,13 @@ type Repository interface {
 	Create(original string, shortCode string, expireAt time.Time) (int64, error)
 	GetByShortCode(shortCode string) (entity.URL, error)
 	ShowAll() ([]entity.URL, error)
+	DeleteExpiredURLs() ([]entity.URL, error)
 }
 
 type UrlCashRepository interface {
 	Set(url entity.URL) error
 	Get(shortCode string) (entity.URL, error)
+	DELETE(shortCode string) error
 }
 
 type Service struct {

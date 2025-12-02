@@ -79,3 +79,34 @@ func (u *UrlMyPostgresRepo) GetByShortCode(shortCode string) (entity.URL, error)
 	return res, nil
 
 }
+
+func (u *UrlMyPostgresRepo) DeleteExpiredURLs() ([]entity.URL, error) {
+	query := `SELECT FROM urls WHERE expire_at < now() RETURNING id, short_code`
+
+	rows, err := u.DB.Query(context.Background(), query)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var expireUrl []entity.URL
+
+	for rows.Next() {
+
+		var u entity.URL
+
+		if err := rows.Scan(&u.ID, &u.Original, &u.ShortCode, &u.CreatedAt, &u.ExpireAt); err != nil {
+			fmt.Println("Scan error:", err)
+		}
+
+		expireUrl = append(expireUrl, u)
+
+	}
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", rows.Err())
+	}
+
+	return expireUrl, nil
+
+}

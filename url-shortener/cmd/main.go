@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/rezaabaskhanian/go-url-shortener/internal/config"
 	"github.com/rezaabaskhanian/go-url-shortener/internal/delivery/httpserver"
 	urlhandler "github.com/rezaabaskhanian/go-url-shortener/internal/delivery/httpserver/handler"
@@ -39,6 +42,12 @@ func main() {
 	myUrlRepo := postgres.NewMyPostgres(mydbPostGress)
 
 	svc := usecase.New(myUrlRepo, redisRepo)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	defer cancel()
+
+	go svc.StartCleanUp(ctx, 24*time.Hour)
 
 	handler := urlhandler.New(svc)
 

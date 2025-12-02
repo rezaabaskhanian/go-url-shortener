@@ -14,12 +14,18 @@ type Repository interface {
 	ShowAll() ([]entity.URL, error)
 }
 
-type Service struct {
-	repo Repository
+type UrlCashRepository interface {
+	Set(url entity.URL) error
+	Get(shortCode string) (entity.URL, error)
 }
 
-func New(repo Repository) Service {
-	return Service{repo: repo}
+type Service struct {
+	repo      Repository
+	redisRepo UrlCashRepository
+}
+
+func New(repo Repository, redisRepo UrlCashRepository) Service {
+	return Service{repo: repo, redisRepo: redisRepo}
 }
 
 func (s Service) ShowAllUser() ([]entity.URL, error) {
@@ -62,15 +68,29 @@ func (s Service) CreateUrl(req param.UrlRequest) (entity.URL, error) {
 		ExpireAt:  expireAt,
 	}
 
+	// ذخیره مجدد در Redis
+	if err := s.redisRepo.Set(url); err != nil {
+		fmt.Println("warning: cannot cache url:", err)
+	}
+
 	return url, nil
 }
 
 func (s Service) GetByShortCode(req param.ShortCodeRequst) (entity.URL, error) {
+	redisValue, errRedis := s.redisRepo.Get(req.ShortCode)
+
+	if errRedis == nil {
+		return redisValue, nil
+	}
 
 	res, err := s.repo.GetByShortCode(req.ShortCode)
 	if err != nil {
 		return entity.URL{}, err
 	}
 
+	// ذخیره مجدد در Redis
+	if err := s.redisRepo.Set(res); err != nil {
+		fmt.Println("warning: cannot cache url:", err)
+	}
 	return res, nil
 }

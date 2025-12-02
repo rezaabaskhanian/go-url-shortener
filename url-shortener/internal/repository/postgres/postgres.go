@@ -7,14 +7,13 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rezaabaskhanian/go-url-shortener/internal/entity"
-	"github.com/rezaabaskhanian/go-url-shortener/internal/repository"
 )
 
 type UrlMyPostgresRepo struct {
 	DB *pgxpool.Pool
 }
 
-func NewMyPostgres(db *pgxpool.Pool) repository.UrlRepository {
+func NewMyPostgres(db *pgxpool.Pool) UrlRepository {
 	return &UrlMyPostgresRepo{DB: db}
 }
 

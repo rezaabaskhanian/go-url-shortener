@@ -1,4 +1,4 @@
-package repository
+package redis
 
 import "github.com/rezaabaskhanian/go-url-shortener/internal/entity"
 

@@ -1,12 +1,11 @@
 package main
 
 import (
-	"context"
-	"log"
-
+	"github.com/rezaabaskhanian/go-url-shortener/internal/config"
 	"github.com/rezaabaskhanian/go-url-shortener/internal/delivery/httpserver"
 	urlhandler "github.com/rezaabaskhanian/go-url-shortener/internal/delivery/httpserver/handler"
 	"github.com/rezaabaskhanian/go-url-shortener/internal/repository/postgres"
+	"github.com/rezaabaskhanian/go-url-shortener/internal/repository/redis"
 	"github.com/rezaabaskhanian/go-url-shortener/internal/usecase"
 )
 
@@ -19,17 +18,27 @@ func main() {
 	// }
 	// defer pool.Close()
 
+	cfgRedis := config.RedisConfig{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	}
+
 	mydbPostGress := postgres.New()
 
-	if err := mydbPostGress.Ping(context.Background()); err != nil {
-		log.Fatalf("Database not reachable: %v", err)
-	} else {
-		log.Println("Connected OK!")
-	}
+	// if err := mydbPostGress.Ping(context.Background()); err != nil {
+	// 	log.Fatalf("Database not reachable: %v", err)
+	// } else {
+	// 	log.Println("Connected OK!")
+	// }
+
+	mydbRedis := redis.NewRedis(cfgRedis)
+
+	redisRepo := redis.NeWMyRedisClient(mydbRedis)
 
 	myUrlRepo := postgres.NewMyPostgres(mydbPostGress)
 
-	svc := usecase.New(myUrlRepo)
+	svc := usecase.New(myUrlRepo, redisRepo)
 
 	handler := urlhandler.New(svc)
 
